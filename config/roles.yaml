@@ -1,0 +1,69 @@
+---
+roles:
+  primary:
+    private_networks:
+      - ip: '10.20.1.80'
+        auto_network: true
+    providers:
+      - type: virtualbox
+        customize:
+          - [modifyvm, !ruby/sym id, '--memory', 4096]
+          - [modifyvm, !ruby/sym id, '--ioapic', 'on']
+          - [modifyvm, !ruby/sym id, '--cpus', '4']
+    provisioners:
+      - type: hosts
+      - type: shell
+        inline: "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"
+      - type: shell
+        inline: "systemctl stop firewalld"
+      - type: shell
+        inline: "systemctl disable firewalld"
+      - type: shell
+        inline: "echo 'ja_JP.utf8' >> /etc/locale.gen"
+      - type: pe_bootstrap
+        role: !ruby/sym master
+        answer_file: pe.conf
+        autosign: true
+      - type: shell
+        inline: |-
+          /opt/puppetlabs/puppet/bin/gem install puppetclassify hiera-eyaml --no-ri --no-rdoc
+          /opt/puppetlabs/bin/puppetserver gem install hiera-eyaml --no-ri --no-rdoc
+          /vagrant/scripts/deploy.sh
+      - type: shell
+        inline: "systemctl restart pe-puppetserver"
+      - type: shell
+        inline: "/opt/puppetlabs/puppet/bin/ruby /vagrant/scripts/boot.rb"
+      - type: shell
+        inline: "/opt/puppetlabs/bin/puppet agent -t; true"
+
+
+  posix_agent:
+    private_networks:
+      - {ip: '0.0.0.0', auto_network: true}
+    provisioners:
+      - {type: shell, inline: "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"}
+      - {type: hosts}
+      - type: shell
+        inline: |-
+          mkdir -p /etc/puppetlabs/{facter/facts.d,puppet}
+          cp /vagrant/web_server.attributes /etc/puppetlabs/puppet/csr_attributes.yaml
+          curl -sk https://master.puppet.vm:8140/packages/current/install.bash | /bin/bash -s agent:use_cached_catalog=true
+
+  windows_agent:
+    communicator: winrm
+    forwarded_ports:
+          - { guest: 5985, host: 35985, auto_correct: true }
+          - { guest: 3389, host: 33389, auto_correct: true }
+    private_networks:
+      - {ip: '0.0.0.0', auto_network: true}
+    provisioners:
+      - type: hosts
+      - type: shell
+        inline: 'Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value "0"'
+      - type: reload
+      - type: shell
+        inline: |-
+          New-Item C:\ProgramData\Puppetlabs\Puppet\etc -type directory -force
+          Copy-Item C:\vagrant\web_server.attributes C:\ProgramData\PuppetLabs\Puppet\etc\csr_attributes.yaml -force
+      - type: shell
+        path: "scripts/install_agent.ps1"
