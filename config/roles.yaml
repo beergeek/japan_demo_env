@@ -46,7 +46,7 @@ roles:
       - type: shell
         inline: |-
           mkdir -p /etc/puppetlabs/{facter/facts.d,puppet}
-          cp /vagrant/web_server.attributes /etc/puppetlabs/puppet/csr_attributes.yaml
+          cp /vagrant/monitor.attributes /etc/puppetlabs/puppet/csr_attributes.yaml
           curl -sk https://master.puppet.vm:8140/packages/current/install.bash | /bin/bash -s agent:use_cached_catalog=true
 
   windows_agent:
