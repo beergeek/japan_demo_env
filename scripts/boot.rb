@@ -187,6 +187,7 @@ def change_classification()
   master_classes = {
     'pe_repo' => {},
     'pe_repo::platform::el_7_x86_64' => {},
+    'pe_repo::platform::el_6_x86_64' => {},
     'pe_repo::platform::windows_x86_64' => {},
     'puppet_enterprise::profile::master' => {},
     'puppet_enterprise::profile::master::mcollective' => {},
