@@ -29,6 +29,7 @@ roles:
           /opt/puppetlabs/puppet/bin/gem install puppetclassify hiera-eyaml --no-ri --no-rdoc
           /opt/puppetlabs/bin/puppetserver gem install hiera-eyaml --no-ri --no-rdoc
           /vagrant/scripts/deploy.sh
+          cp -a /vagrant/iis_file /opt/
       - type: shell
         inline: "systemctl restart pe-puppetserver"
       - type: shell
@@ -37,7 +38,19 @@ roles:
         inline: "/opt/puppetlabs/bin/puppet agent -t; true"
 
 
-  posix_agent:
+  posix_agent_lb:
+    private_networks:
+      - {ip: '0.0.0.0', auto_network: true}
+    provisioners:
+      - {type: shell, inline: "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"}
+      - {type: hosts}
+      - type: shell
+        inline: |-
+          mkdir -p /etc/puppetlabs/{facter/facts.d,puppet}
+          cp /vagrant/lb.attributes /etc/puppetlabs/puppet/csr_attributes.yaml
+          curl -sk https://master.puppet.vm:8140/packages/current/install.bash | /bin/bash -s agent:use_cached_catalog=true
+
+  posix_agent_mon:
     private_networks:
       - {ip: '0.0.0.0', auto_network: true}
     provisioners:
@@ -67,3 +80,4 @@ roles:
           Copy-Item C:\vagrant\web_server.attributes C:\ProgramData\PuppetLabs\Puppet\etc\csr_attributes.yaml -force
       - type: shell
         path: "scripts/install_agent.ps1"
+      - type: reload

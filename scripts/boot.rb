@@ -88,12 +88,25 @@ def new_groups()
   db_group = {
     'role::db_server' => {}
   }
+
+  lb_group = {
+    'role::load_balancer' => {}
+  }
+
+  monitoring_group = {
+    'role::monitor_server' => {}
+  }
+
   #Web Group
   create_group("ウェブ・グループ",'937f05eb-8185-4517-a609-3e64d05191c2',web_group,["or",["=",["trusted","extensions","pp_role"],"ウェブ_サーバ"],["~",["fact","pp_role"],"ウェブ_サーバ"]],"All Nodes")
   #Application Group
   create_group("アプリケーション・グループ",'937f05eb-8185-4517-a609-3e64d05191c1',app_group,["or",["=",["trusted","extensions","pp_role"],"アプリ_サーバ"],["~",["fact","pp_role"],"アプリ_サーバ"]],'All Nodes')
-  #Databse Group
+  #Database Group
   create_group("データベース・グループ",'937f05eb-8185-4517-a609-3e64d05191ca',db_group,["and",["=",["trusted","extensions","pp_role"],"db_サーバ"],["~",["fact","pp_role"],"db_サーバ"]],'All Nodes')
+  # Load Balancer Group
+  create_group("ロードバランサ","937f05eb-8185-4517-a609-3e64d0519122",lb_group,["and",["=",["trusted","extensions","pp_role"],"load_balancer"]],'All Nodes')
+  # Monitoring Server Group
+  create_group("監視サーバ","937f05eb-8185-4517-a609-3e64d08891ca",monitoring_group,["and",["=",["trusted","extensions","pp_role"],"monitoring_server"]],'All Nodes')
 end
 
 def change_classification()

@@ -7,7 +7,12 @@ vms:
 
   - name: "node0.puppet.vm"
     box:  "puppetlabs/centos-6.6-64-nocm"
-    roles: [ "posix_agent" ]
+    roles: [ "posix_agent_lb" ]
+    autostart: true
+
+  - name: "node1.puppet.vm"
+    box:  "puppetlabs/centos-6.6-64-nocm"
+    roles: [ "posix_agent_mon" ]
     autostart: true
 
   - name: "win0.puppet.vm"
