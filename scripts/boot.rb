@@ -26,6 +26,12 @@ end
 # Have puppet parse its config so we can call its settings
 Puppet.initialize_settings
 
+def fix_hiera(hiera_content)
+  open('/etc/puppetlabs/puppet/hiera.yaml','w') do |f|
+    f.puts hiera_content
+  end
+end
+
 # Read classifier.yaml for split installation compatibility
 def load_classifier_config
   configfile = File.join Puppet.settings[:confdir], 'classifier.yaml'
@@ -158,5 +164,6 @@ def resource_manage(resource_type, resource_name, cmd_hash)
   end
 end
 
+fix_hiera(hiera_config)
 new_groups()
 change_classification()
